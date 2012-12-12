@@ -1,5 +1,3 @@
-/* Created by Peleg */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,7 +5,8 @@
 #include <Psapi.h>
 #pragma comment(lib, "Psapi.lib")
 
-#define MAX_PROCESSES 100
+#define MAX_PROCESSES 200
+#define MAX_SIZE 200
 
 static int last=0;
 
@@ -34,7 +33,7 @@ void pskill(int pid) {
 	HANDLE h;
 	h = OpenProcess(PROCESS_TERMINATE,FALSE,pid);
 	if(!h) {
-		printf("Process doesn't exist.");
+		printf("Process doesn't exist.\n");
 		return;
 	}
 	TerminateProcess(h,0);
@@ -45,7 +44,6 @@ void psprint() {
 	DWORD returned,pids[500];
 	int i=0;
 	LPSTR buffer = (LPSTR)calloc(MAX_PROCESSES,sizeof(CHAR));
-	char *buffer2;
 
 	
 	if(!EnumProcesses(pids,sizeof(pids),&returned))
@@ -56,51 +54,48 @@ void psprint() {
 	printf("PID\tImage Name\n");
 	for(i=0; i<returned/sizeof(DWORD); i++) 
 	{
+		memset(buffer,0, sizeof buffer);	//	buffer now points at a different address
 		h = OpenProcess(PROCESS_QUERY_INFORMATION,TRUE,pids[i]);
 		GetProcessImageFileName(h,buffer,MAX_PROCESSES);
-		buffer2 = strrchr((char*)buffer, '\'');
-		printf("%d %s\n", pids[i], buffer2);
+		
+		if(*buffer==0) continue;
+		printf("%d \t%s\n", pids[i], strrchr(buffer,92)+1);
 	}
 	free(buffer);
-	free(buffer2);
+}
+void help() 
+{
+	printf("Available Commands: \nSUB , MUL , ADD , PRINT , PSKILL , PSPRINT , QUIT\n");
+}
+
+int checkcommand(char *command, int *a, int *b) {
+
+	if(strcmp(command,"SUB")==0) {  scanf("%d, %d", a, b); last+=sub(a,b); return 0; }
+	else if(strcmp(command,"MUL")==0) {  scanf("%d, %d", a, b); last+=mul(a,b); return 0; }
+	else if(strcmp(command,"ADD")==0) {  scanf("%d, %d", a, b); last+=add(a,b); return 0; }
+	else if(strcmp(command,"PRINT")==0) { print(); return 0; }
+	else if(strcmp(command,"PSKILL")==0) { scanf("%d", a); pskill(*a); return 0; }
+	else if(strcmp(command,"PSPRINT")==0) { psprint(); return 0; }
+	else if(strcmp(command,"HELP")==0 || strcmp(command,"?")==0) { help(); return 0; }
+	else if(strcmp(command,"QUIT")==0) return 1;
+	else if(strcmp(command,"DEADLY")==0) {printf("KAKI\n"); return 0; }
+	else { printf("%s: Invalid Command.\n", command); return 0; }
 }
 
 
-void checkcommand(char *command, int *a, int *b) {
-
-	if(strcmp(command,"SUB")==0) last+=sub(a,b);
-	else if(strcmp(command,"MUL")==0) last+=mul(a,b); 
-	else if(strcmp(command,"ADD")==0) last+=add(a,b);
-	else if(strcmp(command,"PRINT")==0) print();
-	else if(strcmp(command,"PSKILL")==0) pskill(*a);
-	else if(strcmp(command,"PSPRINT")==0) psprint();
-	else printf("%s: Invalid Command.\n", command);
-
-}
-
-int main(int argc, char** argv) {
+int main(void) {
 	
-	int a=0,b=0,i=0;
+	int a=0,b=0,check=0,i=0;
 	char command[100];
-	FILE * fp;
+	system("COLOR C");
+	printf("\t\t\tScripter By Peleg\n\n");
 
-	if(argc==1) {
-		printf("Usage: %s file.pel");
-		return 1;
-	}
-
-	fp = fopen(argv[1], "rt");
-	if(fp==NULL) {
-		printf("ERROR! file doesn't exist...");
-		return 1;
+	while(check==0) {
+		fflush(stdin);
+		printf("> ");
+		scanf("%s",command);
+		check = checkcommand(&command[0],&a,&b);
 	}
 	
-	
-	while (fscanf(fp,"%s %d, %d", &command, &a, &b) !=EOF) {
-		checkcommand(command,&a,&b);
-	}
-
-	getchar();
-	fclose(fp);
 	return 0;
 }
