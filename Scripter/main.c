@@ -1,3 +1,4 @@
+/* Created by Peleg */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -78,7 +79,6 @@ int checkcommand(char *command, int *a, int *b) {
 	else if(strcmp(command,"PSPRINT")==0) { psprint(); return 0; }
 	else if(strcmp(command,"HELP")==0 || strcmp(command,"?")==0) { help(); return 0; }
 	else if(strcmp(command,"QUIT")==0) return 1;
-	else if(strcmp(command,"DEADLY")==0) {printf("KAKI\n"); return 0; }
 	else { printf("%s: Invalid Command.\n", command); return 0; }
 }
 
